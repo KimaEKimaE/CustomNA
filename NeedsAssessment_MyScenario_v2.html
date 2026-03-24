@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Needs Assessment Lab — My Scenario</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal: #1D9E75; --teal-light: #E1F5EE; --teal-mid: #5DCAA5; --teal-dark: #085041;
+    --gold: #EF9F27; --gold-light: #FAEEDA; --gold-dark: #633806;
+    --charcoal: #2C2C2A; --gray-light: #F1EFE8; --gray-mid: #B4B2A9;
+    --white: #ffffff; --text-main: #1a1a18; --text-muted: #5F5E5A; --text-light: #888780;
+    --radius: 12px; --radius-sm: 8px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Raleway', sans-serif; background: #f8f7f3; color: var(--text-main); min-height: 100vh; }
+
+  /* ── HEADER ── */
+  .site-header { background: var(--charcoal); position: sticky; top: 0; z-index: 100; border-bottom: 3px solid var(--teal); }
+  .header-inner { max-width: 980px; margin: 0 auto; padding: 14px 2rem; display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-icon { width: 36px; height: 36px; background: var(--teal); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .brand-name { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; color: var(--white); }
+  .brand-name span { color: var(--teal-mid); }
+  .header-tag { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-mid); background: rgba(29,158,117,0.15); padding: 4px 10px; border-radius: 20px; }
+
+  /* ── PROGRESS ── */
+  .progress-wrap { background: var(--charcoal); padding: 0 2rem 12px; }
+  .progress-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 6px; align-items: center; }
+  .step-dot { display: flex; align-items: center; gap: 6px; }
+  .step-dot .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.2); transition: all 0.3s; }
+  .step-dot.active .dot { background: var(--teal); transform: scale(1.4); }
+  .step-dot.done .dot { background: var(--teal-mid); }
+  .step-dot .step-label { font-size: 10px; color: rgba(255,255,255,0.3); font-weight: 500; display: none; }
+  .step-dot.active .step-label { color: var(--teal-mid); display: block; }
+  .step-connector { flex: 1; height: 1px; background: rgba(255,255,255,0.1); }
+
+  /* ── LAYOUT ── */
+  .main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem 4rem; }
+  .phase { display: none; animation: fadeUp 0.5s ease both; }
+  .phase.active { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── PHASE HERO ── */
+  .phase-hero { background: var(--charcoal); border-radius: var(--radius); padding: 2.5rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
+  .phase-hero::before { content: ''; position: absolute; top: 0; right: 0; width: 200px; height: 200px; background: radial-gradient(circle, rgba(29,158,117,0.15) 0%, transparent 70%); pointer-events: none; }
+  .phase-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal-mid); margin-bottom: 10px; }
+  .phase-title { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 700; color: var(--white); line-height: 1.25; margin-bottom: 12px; }
+  .phase-subtitle { font-size: 15px; color: rgba(255,255,255,0.6); line-height: 1.6; max-width: 580px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--white); border-radius: var(--radius); border: 1px solid #e8e6df; padding: 1.75rem 2rem; margin-bottom: 1.5rem; }
+  .card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 2px solid var(--teal-light); }
+  .card-header .section-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: var(--charcoal); color: var(--teal-mid); padding: 3px 10px; border-radius: 12px; white-space: nowrap; margin-top: 2px; }
+  .card-header h3 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-main); line-height: 1.3; }
+  .hint-block { display: flex; gap: 10px; align-items: flex-start; background: var(--gold-light); border-left: 3px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 10px 14px; margin-bottom: 12px; }
+  .hint-block .hint-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .hint-block p { font-size: 12px; color: var(--gold-dark); line-height: 1.55; }
+
+  /* ── STUDENT INFO ── */
+  .student-info { background: var(--white); border: 1px solid #e8e6df; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .student-info h4 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; }
+  .field-row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; margin-bottom: 10px; }
+  .field-row label { font-size: 13px; font-weight: 600; color: var(--text-muted); }
+  .field-row input { border: none; border-bottom: 2px solid var(--teal-light); padding: 6px 4px; font-family: 'Raleway', sans-serif; font-size: 13px; color: var(--text-main); background: transparent; outline: none; width: 100%; transition: border-color 0.2s; }
+  .field-row input:focus { border-bottom-color: var(--teal); }
+
+  /* ── TEXTAREA ── */
+  .input-block { margin-bottom: 1.5rem; }
+  .input-block label { display: block; font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+  .input-block .sub-label { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; display: block; line-height: 1.5; font-style: italic; }
+  textarea { width: 100%; border: 1.5px solid #e8e6df; border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Raleway', sans-serif; font-size: 13px; color: var(--text-main); line-height: 1.6; resize: vertical; transition: border-color 0.2s; background: #fdfcfa; }
+  textarea:focus { outline: none; border-color: var(--teal); background: var(--white); }
+  textarea::placeholder { color: var(--text-light); }
+  .word-counter { font-size: 11px; color: var(--text-light); margin-top: 6px; text-align: right; transition: color 0.2s; }
+  .word-counter.met { color: var(--teal); font-weight: 600; }
+  .word-counter.warn { color: #E24B4A; }
+
+  /* ── WARN / INFO BANNERS ── */
+  .warn-banner { background: var(--gold-light); border-left: 4px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--gold-dark); line-height: 1.6; }
+  .warn-banner strong { font-weight: 700; }
+  .info-banner { background: var(--teal-light); border-left: 4px solid var(--teal); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--teal-dark); line-height: 1.6; }
+  .info-banner strong { font-weight: 700; }
+
+  /* ── METHOD CARDS ── */
+  .methods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1rem; }
+  .method-card { background: var(--white); border: 2px solid #e8e6df; border-radius: var(--radius); padding: 1.25rem; cursor: pointer; transition: all 0.25s; position: relative; }
+  .method-card:hover { border-color: var(--teal-mid); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(29,158,117,0.12); }
+  .method-card.selected { border-color: var(--teal); background: var(--teal-light); }
+  .method-card.selected::after { content: '✓'; position: absolute; top: 10px; right: 12px; width: 22px; height: 22px; background: var(--teal); color: white; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  .method-card.disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+  .method-icon { font-size: 24px; margin-bottom: 8px; display: block; }
+  .method-name { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 4px; }
+  .method-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+  .select-note { font-size: 13px; color: var(--text-muted); margin-bottom: 1rem; font-weight: 500; }
+  .select-note strong { color: var(--teal); }
+
+  /* ── DATA ENTRY PANELS ── */
+  .data-entry-panel { background: var(--white); border: 1px solid #e8e6df; border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
+  .data-panel-header { background: var(--charcoal); padding: 14px 20px; display: flex; align-items: center; gap: 10px; }
+  .data-panel-header .tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; background: rgba(29,158,117,0.25); color: var(--teal-mid); padding: 3px 8px; border-radius: 12px; }
+  .data-panel-header h4 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--white); }
+  .data-panel-body { padding: 1.5rem; }
+
+  /* ── ANALYSIS PROMPTS ── */
+  .prompt-item { background: var(--white); border: 1px solid #e8e6df; border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem; }
+  .prompt-item .q-num { font-size: 11px; font-weight: 700; color: var(--teal); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+  .prompt-item .q-text { font-size: 14px; font-weight: 600; color: var(--text-main); margin-bottom: 8px; line-height: 1.4; }
+  .prompt-item .q-hint { font-size: 12px; color: var(--text-muted); font-style: italic; margin-bottom: 10px; line-height: 1.5; }
+
+  /* ── CHECKLIST ── */
+  .checklist { background: var(--white); border: 1px solid #e8e6df; border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .checklist h4 { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 600; color: var(--text-main); margin-bottom: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--teal-light); }
+  .check-item { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; font-size: 13px; color: var(--text-main); line-height: 1.5; }
+  .check-item::before { content: '→'; color: var(--teal); font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  /* ── BUTTONS ── */
+  .btn-primary { background: var(--teal); color: white; border: none; border-radius: var(--radius-sm); padding: 13px 28px; font-family: 'Raleway', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .btn-primary:hover { background: var(--teal-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(29,158,117,0.3); }
+  .btn-secondary { background: transparent; color: var(--teal); border: 2px solid var(--teal); border-radius: var(--radius-sm); padding: 11px 24px; font-family: 'Raleway', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .btn-secondary:hover { background: var(--teal-light); }
+  .btn-download { background: var(--charcoal); color: white; border: none; border-radius: var(--radius-sm); padding: 14px 32px; font-family: 'Raleway', sans-serif; font-size: 15px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+  .btn-download:hover { background: var(--teal-dark); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+  .btn-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 1.5rem; }
+
+  /* ── ERROR / COMPLETION ── */
+  .error-msg { background: #FCEBEB; border: 1px solid #F09595; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; color: #A32D2D; margin-top: 8px; display: none; }
+  .selected-methods-display { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .method-badge { background: var(--teal-light); color: var(--teal-dark); border: 1px solid var(--teal-mid); border-radius: 20px; padding: 5px 14px; font-size: 12px; font-weight: 700; }
+  .completion-hero { text-align: center; padding: 3rem 2rem; background: var(--white); border-radius: var(--radius); border: 1px solid #e8e6df; margin-bottom: 2rem; }
+  .completion-icon { font-size: 48px; margin-bottom: 1rem; display: block; }
+  .completion-hero h2 { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: var(--text-main); margin-bottom: 10px; }
+  .completion-hero p { font-size: 14px; color: var(--text-muted); line-height: 1.6; max-width: 500px; margin: 0 auto 1.5rem; }
+  .scenario-card { background: var(--white); border-radius: var(--radius); border: 1px solid #e8e6df; padding: 1.5rem 2rem; margin-bottom: 1.5rem; }
+  .scenario-card h3 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 600; color: var(--text-main); margin-bottom: 1rem; padding-bottom: 8px; border-bottom: 2px solid var(--teal-light); }
+
+  @media (max-width: 600px) { .methods-grid { grid-template-columns: 1fr; } .phase-title { font-size: 22px; } .field-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-icon">📋</div>
+      <div class="brand-name">Needs Assessment Lab — <span>My Scenario</span></div>
+    </div>
+    <div class="header-tag">Custom Scenario</div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-inner" id="progressBar"></div>
+  </div>
+</header>
+
+<main class="main">
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 1: SCENARIO SETUP            -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase active" id="phase-1">
+
+    <div class="phase-hero">
+      <div class="phase-eyebrow">Phase 1 of 5 — Your Scenario</div>
+      <h1 class="phase-title">Tell us about your organization and the problem.</h1>
+      <p class="phase-subtitle">Complete all fields below. Your entries will carry through to your final PDF submission. All fields are required before you can proceed.</p>
+    </div>
+
+    <div class="student-info">
+      <h4>Student Information <span style="font-size:12px;color:#E24B4A;font-family:'Raleway',sans-serif;font-weight:500;">* All fields required</span></h4>
+      <div class="field-row"><label>Student Name <span style="color:#E24B4A;">*</span></label><input type="text" id="student-name" placeholder="Enter your full name"></div>
+      <div class="field-row"><label>Date <span style="color:#E24B4A;">*</span></label><input type="text" id="student-date" placeholder="MM/DD/YYYY"></div>
+      <div class="field-row"><label>Course Section <span style="color:#E24B4A;">*</span></label><input type="text" id="student-section" placeholder="e.g., OLL 4550 — Section 001"></div>
+    </div>
+
+    <!-- COMPANY OVERVIEW -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag">Company Overview</span>
+        <h3>Background</h3>
+      </div>
+      <div class="hint-block">
+        <span class="hint-icon">💡</span>
+        <p>Use this section to provide a brief overview of the company or organization. Include the industry, size, location, and any relevant context about how the organization operates.</p>
+      </div>
+      <div class="input-block">
+        <textarea id="company-overview" rows="6" placeholder="Describe the organization you are working with. Who are they? What do they do? Where are they located? How are they structured?" oninput="updateCounter('company-overview','count-co',100)"></textarea>
+        <div class="word-counter" id="count-co">0 / 100 words minimum</div>
+      </div>
+    </div>
+
+    <!-- PERFORMANCE PROBLEM -->
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag">What We Know So Far</span>
+        <h3>The Performance Problem</h3>
+      </div>
+      <div class="hint-block">
+        <span class="hint-icon">💡</span>
+        <p>Discuss what you know so far. This section is <strong>NOT</strong> for the data you will collect, but instead to discuss what issues or problems you have noticed that have led you to conduct a needs assessment. What is happening that should not be happening? What is not happening that should be?</p>
+      </div>
+      <div class="input-block">
+        <textarea id="performance-problem" rows="7" placeholder="Describe the performance problem or organizational concern that prompted this needs assessment. What patterns, complaints, or observations led you here?" oninput="updateCounter('performance-problem','count-pp',100)"></textarea>
+        <div class="word-counter" id="count-pp">0 / 100 words minimum</div>
+      </div>
+    </div>
+
+    <div class="warn-banner">
+      <strong>Before you continue:</strong> You are required to select exactly two needs assessment methods on the next screen and document what your data revealed. When complete, you will download your PDF, upload it to Google Drive, and submit your link via AsULearn.
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="validatePhase1()">Continue to Method Selection →</button>
+    </div>
+    <div class="error-msg" id="phase1-error">Please complete all required fields — Student Name, Date, Course Section, Company Overview, and Performance Problem — before continuing.</div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 2: METHOD SELECTION          -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase" id="phase-2">
+
+    <div class="phase-hero">
+      <div class="phase-eyebrow">Phase 2 of 5 — Strategy Selection</div>
+      <h1 class="phase-title">Which methods did you use?</h1>
+      <p class="phase-subtitle">Select exactly two needs assessment methods. Then justify your choices — explain what each method yielded and why it was necessary for your specific scenario.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="section-tag">Required</span>
+        <h3>Step 1 — State which needs assessment methods you used</h3>
+      </div>
+      <p class="select-note"><strong>Select exactly 2 methods.</strong> Click a selected method to deselect it.</p>
+      <div class="methods-grid" id="methodsGrid">
+        <div class="method-card" data-method="surveys" onclick="toggleMethod(this)">
+          <span class="method-icon">📋</span>
+          <div class="method-name">Surveys</div>
+          <div class="method-desc">Gather quantitative and scaled-response data from a large group. Best for measuring frequency, confidence levels, and identifying patterns across a population.</div>
+        </div>
+        <div class="method-card" data-method="interviews" onclick="toggleMethod(this)">
+          <span class="method-icon">🎙️</span>
+          <div class="method-name">Interviews</div>
+          <div class="method-desc">Collect in-depth qualitative insights through one-on-one or small group conversations. Best for understanding experiences, motivations, and nuanced perspectives.</div>
+        </div>
+        <div class="method-card" data-method="observations" onclick="toggleMethod(this)">
+          <span class="method-icon">👁️</span>
+          <div class="method-name">Observations</div>
+          <div class="method-desc">Watch performers in their natural work environment. Best for identifying workflow gaps, environmental barriers, and behaviors people may not self-report.</div>
+        </div>
+        <div class="method-card" data-method="training" onclick="toggleMethod(this)">
+          <span class="method-icon">📂</span>
+          <div class="method-name">Training Data Review</div>
+          <div class="method-desc">Analyze existing training records, completion logs, module engagement data, quiz performance, and content gap analysis from the current curriculum.</div>
+        </div>
+        <div class="method-card" data-method="other" onclick="toggleMethod(this)">
+          <span class="method-icon">✏️</span>
+          <div class="method-name">Other</div>
+          <div class="method-desc">Used a method not listed above? Select this option and describe the method you used in the field below.</div>
+        </div>
+      </div>
+      <div id="other-method-block" style="display:none;margin-top:10px;">
+        <div class="input-block" style="margin-bottom:0;">
+          <label>Describe your other method <span style="color:#E24B4A;">*</span></label>
+          <span class="sub-label">Name the method and briefly explain what type of data it collects and why you chose it for your scenario.</span>
+          <input type="text" id="other-method-name" placeholder="e.g., Focus Groups, Performance Records Review, Delphi Method..." style="width:100%;border:1.5px solid #e8e6df;border-radius:8px;padding:10px 14px;font-family:'Raleway',sans-serif;font-size:13px;color:#1a1a18;background:#fdfcfa;outline:none;transition:border-color 0.2s;" onfocus="this.style.borderColor='#1D9E75'" onblur="this.style.borderColor='#e8e6df'">
+        </div>
+      </div>
+    </div>
+
+    <div id="justification-section" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <span class="section-tag">Step 2</span>
+          <h3>Justify Your Method Selection</h3>
+        </div>
+        <div class="hint-block">
+          <span class="hint-icon">💡</span>
+          <p>For each method you selected, address all three of the following: (1) name the specific type of information it yielded, (2) explain why that information was necessary given what your problem describes, and (3) identify what you would NOT have been able to learn without it.</p>
+        </div>
+        <div class="input-block">
+          <label>Method Justification <span style="font-size:11px;color:var(--text-light);font-weight:400;">(minimum 150 words)</span></label>
+          <textarea id="justification-text" rows="8" placeholder="Connect your method choices directly to what your organizational problem tells you about the performance gap. Be specific about what each method revealed and why it was the right choice for this context..." oninput="updateCounter('justification-text','count-just',150)"></textarea>
+          <div class="word-counter" id="count-just">0 / 150 words minimum</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToPhase(1)">← Back</button>
+      <button class="btn-primary" id="btn-to-phase3" onclick="validatePhase2()" disabled>Continue to Data Entry →</button>
+    </div>
+    <div class="error-msg" id="phase2-error">Please select exactly 2 methods and write a justification of at least 150 words before continuing.</div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 3: DATA ENTRY                -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase" id="phase-3">
+
+    <div class="phase-hero">
+      <div class="phase-eyebrow">Phase 3 of 5 — Data Summary</div>
+      <h1 class="phase-title">What did your methods reveal?</h1>
+      <p class="phase-subtitle">Summarize the data you collected from each of your two selected methods. Be specific — include key findings, patterns, and notable data points.</p>
+    </div>
+
+    <div class="selected-methods-display" id="selected-methods-display"></div>
+
+    <div class="info-banner">
+      <strong>Instructions:</strong> For each method below, summarize the data you gathered. Include specific findings such as percentages, frequencies, key themes, direct observations, or notable quotes. This is your evidence base — the more specific you are here, the stronger your analysis will be in the next section.
+    </div>
+
+    <div id="data-entry-panels"></div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToPhase(2)">← Back</button>
+      <button class="btn-primary" onclick="validatePhase3()">Continue to Analysis →</button>
+    </div>
+    <div class="error-msg" id="phase3-error">Please summarize the data from both of your selected methods before continuing. Each summary must be at least 100 words.</div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 4: ANALYSIS                  -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase" id="phase-4">
+
+    <div class="phase-hero">
+      <div class="phase-eyebrow">Phase 4 of 5 — Analysis</div>
+      <h1 class="phase-title">What does the data tell you?</h1>
+      <p class="phase-subtitle">Use evidence from your data summaries to answer each prompt. Ground every claim in specific findings — no general statements without supporting evidence.</p>
+    </div>
+
+    <div class="prompt-item">
+      <div class="q-num">Prompt 01 — Performance Gap</div>
+      <div class="q-text">What is the performance or learning gap? Be precise.</div>
+      <div class="q-hint">Describe what learners or performers are currently doing versus what they should be doing. Distinguish between a knowledge gap, a skill gap, and a motivational or environmental gap. Minimum 100 words.</div>
+      <textarea id="analysis-1" rows="6" placeholder="Based on the data, the performance gap is..." oninput="updateCounter('analysis-1','count-a1',100)"></textarea>
+      <div class="word-counter" id="count-a1">0 / 100 words minimum</div>
+    </div>
+
+    <div class="prompt-item">
+      <div class="q-num">Prompt 02 — Learner Population & Context</div>
+      <div class="q-text">Describe the learner population and organizational context.</div>
+      <div class="q-hint">Who are these learners? Consider role diversity, prior experience, work environment, technology access, and any contextual factors a training solution must account for. Minimum 100 words.</div>
+      <textarea id="analysis-2" rows="6" placeholder="The learner population consists of..." oninput="updateCounter('analysis-2','count-a2',100)"></textarea>
+      <div class="word-counter" id="count-a2">0 / 100 words minimum</div>
+    </div>
+
+    <div class="prompt-item">
+      <div class="q-num">Prompt 03 — Limitations of the Data</div>
+      <div class="q-text">What does the data NOT tell you? What would you still need to know?</div>
+      <div class="q-hint">Identify what questions remain unanswered and what a second round of needs assessment would need to address. Minimum 100 words.</div>
+      <textarea id="analysis-3" rows="6" placeholder="The data does not fully address..." oninput="updateCounter('analysis-3','count-a3',100)"></textarea>
+      <div class="word-counter" id="count-a3">0 / 100 words minimum</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToPhase(3)">← Back</button>
+      <button class="btn-primary" onclick="validatePhase4()">Continue to Next Steps →</button>
+    </div>
+    <div class="error-msg" id="phase4-error">All three analysis prompts must meet the 100-word minimum before continuing.</div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 5: NEXT STEPS                -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase" id="phase-5">
+
+    <div class="phase-hero">
+      <div class="phase-eyebrow">Phase 5 of 5 — Next Steps</div>
+      <h1 class="phase-title">What should your organization do?</h1>
+      <p class="phase-subtitle">Propose a digital learning solution grounded in your analysis. Every recommendation must be justified by your data.</p>
+    </div>
+
+    <div class="checklist">
+      <h4>Required components — all four must be addressed:</h4>
+      <div class="check-item"><strong>LMS (Learning Management System)</strong> — name a specific platform and explain why it fits your organizational context.</div>
+      <div class="check-item"><strong>Authoring Tool</strong> — name a specific tool and explain what type of content you would build with it for your scenario.</div>
+      <div class="check-item"><strong>Collaboration Tool</strong> — name a specific platform and explain how it supports your learner population.</div>
+      <div class="check-item"><strong>At least two Digital Learning Strategies</strong> — for each, explain how it connects to the specific gap you identified in your analysis.</div>
+    </div>
+
+    <div class="warn-banner">
+      <strong>Remember:</strong> Justify every tool and strategy recommendation by connecting it back to what your data revealed. A tool recommendation without a rationale tied to evidence is incomplete. Consider the specific constraints of your organization — size, technology access, budget, learner schedules — in your response.
+    </div>
+
+    <div class="prompt-item">
+      <div class="q-num">Next Steps Response</div>
+      <div class="q-text">Propose your digital learning solution.</div>
+      <div class="q-hint">Minimum 200 words. Address all four required components and tie every recommendation back to your data.</div>
+      <textarea id="nextsteps-text" rows="12" placeholder="Based on my analysis of the performance gap at [your organization], I recommend the following digital learning solution...&#10;&#10;LMS: ...&#10;Authoring Tool: ...&#10;Collaboration Tool: ...&#10;Digital Learning Strategies: ..." oninput="updateCounter('nextsteps-text','count-ns',200)"></textarea>
+      <div class="word-counter" id="count-ns">0 / 200 words minimum</div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToPhase(4)">← Back</button>
+      <button class="btn-primary" onclick="validatePhase5()">Generate My Assessment →</button>
+    </div>
+    <div class="error-msg" id="phase5-error">Your Next Steps response must be at least 200 words and address all four required components.</div>
+
+  </section>
+
+  <!-- ═══════════════════════════════════ -->
+  <!-- PHASE 6: COMPLETE                  -->
+  <!-- ═══════════════════════════════════ -->
+  <section class="phase" id="phase-6">
+
+    <div class="completion-hero">
+      <span class="completion-icon">🎉</span>
+      <h2>Needs Assessment Complete!</h2>
+      <p>You've successfully documented your needs assessment across all five phases. Download your PDF brief below, upload it to Google Drive, then submit your Google Drive link via AsULearn.</p>
+    </div>
+
+    <div class="scenario-card">
+      <h3>Your Assessment Summary</h3>
+      <div id="summary-display"></div>
+    </div>
+
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn-download" onclick="generatePDF()">⬇ Download PDF — Submit to AsULearn</button>
+    </div>
+    <p style="text-align:center;font-size:12px;color:var(--text-light);margin-top:12px;">Download your PDF → Upload to Google Drive → Submit your Google Drive link via AsULearn.<br>Complete this activity in one sitting — progress is not saved between sessions.</p>
+
+  </section>
+
+</main>
+
+<script>
+// ── STATE ──
+const state = {
+  studentName:'', studentDate:'', studentSection:'',
+  companyOverview:'', performanceProblem:'',
+  selectedMethods:[], justification:'', otherMethodName:'',
+  dataSummary:{},
+  analysis1:'', analysis2:'', analysis3:'',
+  nextSteps:''
+};
+
+const STEPS = ['Scenario','Methods','Data','Analysis','Next Steps','Complete'];
+const METHOD_NAMES = { surveys:'Surveys', interviews:'Interviews', observations:'Observations', training:'Training Data Review', other:'Other' };
+const METHOD_ICONS = { surveys:'📋', interviews:'🎙️', observations:'👁️', training:'📂', other:'✏️' };
+
+// ── PROGRESS ──
+function renderProgress(n) {
+  document.getElementById('progressBar').innerHTML = STEPS.map((s,i) => {
+    const p=i+1; let cls='step-dot';
+    if(p===n) cls+=' active'; else if(p<n) cls+=' done';
+    const conn = i<STEPS.length-1 ? '<div class="step-connector"></div>' : '';
+    return `<div class="${cls}"><div class="dot"></div><span class="step-label">${s}</span></div>${conn}`;
+  }).join('');
+}
+
+function goToPhase(n) {
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('active'));
+  document.getElementById(`phase-${n}`).classList.add('active');
+  renderProgress(n);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ── WORD COUNT ──
+function countWords(text) {
+  return text.trim().split(/\s+/).filter(w=>w.length>0).length;
+}
+
+function updateCounter(id, counterId, min) {
+  const val = document.getElementById(id).value;
+  const count = countWords(val);
+  const el = document.getElementById(counterId);
+  if(min) {
+    el.textContent = `${count} / ${min} words minimum`;
+    el.className = 'word-counter' + (count>=min ? ' met' : count>min*0.6 ? '' : ' warn');
+  } else {
+    el.textContent = `${count} words`;
+    el.className = 'word-counter' + (count>10 ? ' met' : '');
+  }
+}
+
+// ── PHASE 1 VALIDATION ──
+function validatePhase1() {
+  const name    = document.getElementById('student-name').value.trim();
+  const date    = document.getElementById('student-date').value.trim();
+  const section = document.getElementById('student-section').value.trim();
+  const co      = document.getElementById('company-overview').value.trim();
+  const pp      = document.getElementById('performance-problem').value.trim();
+  if(!name || !date || !section || !co || !pp) {
+    document.getElementById('phase1-error').style.display='block';
+    document.getElementById('phase1-error').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('phase1-error').style.display='none';
+  state.studentName=name; state.studentDate=date; state.studentSection=section;
+  state.companyOverview=co; state.performanceProblem=pp;
+  goToPhase(2);
+}
+
+// ── METHOD SELECTION ──
+function toggleMethod(card) {
+  const method = card.dataset.method;
+  const idx = state.selectedMethods.indexOf(method);
+  if(idx>-1) {
+    state.selectedMethods.splice(idx,1);
+    card.classList.remove('selected');
+  } else {
+    if(state.selectedMethods.length>=2) return;
+    state.selectedMethods.push(method);
+    card.classList.add('selected');
+  }
+  document.querySelectorAll('.method-card').forEach(c => {
+    if(!c.classList.contains('selected')) {
+      c.classList.toggle('disabled', state.selectedMethods.length>=2);
+    }
+  });
+  // show/hide Other input field
+  const otherBlock = document.getElementById('other-method-block');
+  if(otherBlock) otherBlock.style.display = state.selectedMethods.includes('other') ? 'block' : 'none';
+  const exactly2 = state.selectedMethods.length===2;
+  document.getElementById('justification-section').style.display = exactly2 ? 'block' : 'none';
+  document.getElementById('btn-to-phase3').disabled = !exactly2;
+}
+
+// ── PHASE 2 VALIDATION ──
+function validatePhase2() {
+  if(state.selectedMethods.length!==2) {
+    document.getElementById('phase2-error').style.display='block'; return;
+  }
+  // if Other selected, require the custom name field
+  if(state.selectedMethods.includes('other')) {
+    const otherName = document.getElementById('other-method-name').value.trim();
+    if(!otherName) {
+      document.getElementById('phase2-error').textContent = 'Please describe your "Other" method in the field provided before continuing.';
+      document.getElementById('phase2-error').style.display='block'; return;
+    }
+    state.otherMethodName = otherName;
+    METHOD_NAMES['other'] = otherName;
+  }
+  const txt = document.getElementById('justification-text').value.trim();
+  if(countWords(txt)<150) {
+    document.getElementById('phase2-error').textContent = 'Please select exactly 2 methods and write a justification of at least 150 words before continuing.';
+    document.getElementById('phase2-error').style.display='block';
+    document.getElementById('phase2-error').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('phase2-error').style.display='none';
+  state.justification = txt;
+  buildDataEntryPanels();
+  goToPhase(3);
+}
+
+// ── BUILD DATA ENTRY PANELS ──
+function buildDataEntryPanels() {
+  const display = document.getElementById('selected-methods-display');
+  const panels  = document.getElementById('data-entry-panels');
+  display.innerHTML = state.selectedMethods.map(m =>
+    `<span class="method-badge">${METHOD_ICONS[m]} ${METHOD_NAMES[m]}</span>`
+  ).join('');
+  panels.innerHTML = state.selectedMethods.map((m,i) => `
+    <div class="data-entry-panel">
+      <div class="data-panel-header">
+        <span class="tag">Data Summary ${i+1}</span>
+        <h4>${METHOD_NAMES[m]}</h4>
+      </div>
+      <div class="data-panel-body">
+        <div class="hint-block" style="margin-bottom:12px;">
+          <span class="hint-icon">💡</span>
+          <p>Summarize the key findings from your <strong>${METHOD_NAMES[m].toLowerCase()}</strong>. Include specific data points, patterns, frequencies, themes, or representative examples. Minimum 100 words.</p>
+        </div>
+        <textarea id="data-${m}" rows="7"
+          placeholder="Summarize what your ${METHOD_NAMES[m].toLowerCase()} revealed. Be specific — include numbers, themes, quotes, or observations as appropriate..."
+          oninput="updateCounter('data-${m}','count-d${i}',100)"></textarea>
+        <div class="word-counter" id="count-d${i}">0 / 100 words minimum</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── PHASE 3 VALIDATION ──
+function validatePhase3() {
+  let valid = true;
+  state.selectedMethods.forEach(m => {
+    const el = document.getElementById(`data-${m}`);
+    if(!el || countWords(el.value.trim())<100) valid=false;
+    else state.dataSummary[m] = el.value.trim();
+  });
+  if(!valid) {
+    document.getElementById('phase3-error').style.display='block';
+    document.getElementById('phase3-error').scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  document.getElementById('phase3-error').style.display='none';
+  goToPhase(4);
+}
+
+// ── PHASE 4 VALIDATION ──
+function validatePhase4() {
+  const a1=document.getElementById('analysis-1').value.trim();
+  const a2=document.getElementById('analysis-2').value.trim();
+  const a3=document.getElementById('analysis-3').value.trim();
+  if(countWords(a1)<100||countWords(a2)<100||countWords(a3)<100) {
+    document.getElementById('phase4-error').style.display='block'; return;
+  }
+  document.getElementById('phase4-error').style.display='none';
+  state.analysis1=a1; state.analysis2=a2; state.analysis3=a3;
+  goToPhase(5);
+}
+
+// ── PHASE 5 VALIDATION ──
+function validatePhase5() {
+  const txt=document.getElementById('nextsteps-text').value.trim();
+  if(countWords(txt)<200) {
+    document.getElementById('phase5-error').style.display='block'; return;
+  }
+  document.getElementById('phase5-error').style.display='none';
+  state.nextSteps=txt;
+  buildSummary();
+  goToPhase(6);
+}
+
+// ── SUMMARY ──
+function buildSummary() {
+  const orgName = state.companyOverview.split(' ').slice(0,6).join(' ') + '...';
+  document.getElementById('summary-display').innerHTML = `
+    <p style="font-size:13px;color:#5F5E5A;line-height:1.5;margin-bottom:10px;">Review your completed assessment. Download the PDF to submit via AsULearn.</p>
+    <p style="font-size:13px;color:#2C2C2A;margin-bottom:6px;"><strong>Student:</strong> ${state.studentName} &nbsp;|&nbsp; <strong>Date:</strong> ${state.studentDate} &nbsp;|&nbsp; <strong>Section:</strong> ${state.studentSection}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0;">
+      ${state.selectedMethods.map(m=>`<span class="method-badge">${METHOD_ICONS[m]} ${METHOD_NAMES[m]}</span>`).join('')}
+    </div>
+    <p style="font-size:13px;color:#2C2C2A;line-height:1.5;margin-top:6px;"><strong>Organization preview:</strong> ${orgName}</p>`;
+}
+
+// ── PDF GENERATION ──
+function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'letter' });
+  const pw=doc.internal.pageSize.getWidth(), ph=doc.internal.pageSize.getHeight();
+  const ml=56, mr=56, tw=pw-ml-mr;
+  let y=0;
+  const methodsLabel = state.selectedMethods.map(m=>METHOD_NAMES[m]).join(' + ');
+  const today = new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+
+  function footer() {
+    const pn=doc.internal.getNumberOfPages();
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); doc.setTextColor(150,150,140);
+    doc.text('Needs Assessment Lab — My Scenario  |  OLL 4550 Digital Learning Systems  |  Appalachian State University',ml,ph-28);
+    doc.text(`Page ${pn}`,pw-mr,ph-28,{align:'right'});
+    doc.setDrawColor(200,198,190); doc.setLineWidth(0.5); doc.line(ml,ph-38,pw-mr,ph-38);
+  }
+
+  function checkPage(needed) {
+    if(y+needed>ph-60) { doc.addPage(); footer(); y=60; }
+  }
+
+  function sectionHeader(num, title) {
+    checkPage(60);
+    doc.setFillColor(44,44,42); doc.rect(ml,y,tw,42,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(93,202,165);
+    doc.text(`SECTION ${num}`,ml+14,y+15);
+    doc.setFont('times','bold'); doc.setFontSize(16); doc.setTextColor(255,255,255);
+    doc.text(title,ml+14,y+32); y+=56;
+  }
+
+  function subHead(text) {
+    checkPage(30);
+    doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(29,158,117);
+    doc.text(text.toUpperCase(),ml,y); y+=16;
+    doc.setDrawColor(225,245,238); doc.setLineWidth(1); doc.line(ml,y,pw-mr,y); y+=10;
+  }
+
+  function bodyTxt(text, indent=false) {
+    const x=indent?ml+14:ml, w=indent?tw-14:tw;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10.5); doc.setTextColor(40,40,38);
+    const lines=doc.splitTextToSize(text,w);
+    lines.forEach(l=>{ checkPage(16); doc.text(l,x,y); y+=16; });
+    y+=6;
+  }
+
+  function divider() {
+    checkPage(14);
+    doc.setDrawColor(220,218,210); doc.setLineWidth(0.5); doc.line(ml,y,pw-mr,y); y+=12;
+  }
+
+  // ── COVER PAGE ──
+  doc.setFillColor(44,44,42); doc.rect(0,0,pw,ph,'F');
+  doc.setFillColor(29,158,117); doc.rect(0,ph-10,pw,10,'F');
+  doc.setFillColor(26,56,48); doc.rect(pw-200,0,200,200,'F');
+  doc.setFillColor(239,159,39); doc.rect(ml,ph-96,190,30,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(99,56,6);
+  doc.text('STUDENT SUBMISSION',ml+10,ph-76);
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(93,202,165);
+  doc.text('NEEDS ASSESSMENT BRIEF',ml,185);
+  doc.setFont('times','bold'); doc.setFontSize(36); doc.setTextColor(255,255,255);
+  doc.text('My Scenario',ml,235);
+  doc.setFont('times','italic'); doc.setFontSize(17); doc.setTextColor(93,202,165);
+  // trim company name for subtitle
+  const orgShort = state.companyOverview.replace(/\n/g,' ').substring(0,60) + (state.companyOverview.length>60?'...':'');
+  const subtitleLines = doc.splitTextToSize(orgShort, tw-60);
+  subtitleLines.forEach((line,i)=>doc.text(line,ml,265+(i*22)));
+  const afterSub = 265 + subtitleLines.length*22 + 10;
+  doc.setDrawColor(29,158,117); doc.setLineWidth(1.5); doc.line(ml,afterSub,ml+320,afterSub);
+  doc.setFont('helvetica','normal'); doc.setFontSize(10.5); doc.setTextColor(180,178,169);
+  const meta = [
+    [`Student: ${state.studentName}`, afterSub+24],
+    [`Date: ${state.studentDate}`, afterSub+44],
+    [`Course Section: ${state.studentSection}`, afterSub+64],
+    [`Methods Used: ${methodsLabel}`, afterSub+84],
+    [`Submission Date: ${today}`, afterSub+104],
+  ];
+  meta.forEach(([t,yy])=>doc.text(t,ml,yy));
+  doc.addPage();
+
+  // ── BODY ──
+  y=60; footer();
+
+  // S1 — Strategy
+  sectionHeader('01','Needs Assessment Strategy');
+  subHead('Methods Selected');
+  bodyTxt(methodsLabel);
+  divider();
+  subHead('Justification');
+  bodyTxt(state.justification);
+  y+=8;
+
+  // S2 — Scenario & Data
+  sectionHeader('02','Scenario & Data Received');
+  subHead('Company Overview');
+  bodyTxt(state.companyOverview);
+  divider();
+  subHead('Performance Problem');
+  bodyTxt(state.performanceProblem);
+  divider();
+  state.selectedMethods.forEach(m => {
+    subHead(`${METHOD_NAMES[m]} — Data Summary`);
+    bodyTxt(state.dataSummary[m]||'', true);
+    divider();
+  });
+  y+=4;
+
+  // S3 — Analysis
+  sectionHeader('03','Analysis');
+  subHead('Performance / Learning Gap');
+  bodyTxt(state.analysis1);
+  divider();
+  subHead('Learner Population & Organizational Context');
+  bodyTxt(state.analysis2);
+  divider();
+  subHead('Limitations of the Data');
+  bodyTxt(state.analysis3);
+  y+=8;
+
+  // S4 — Next Steps
+  sectionHeader('04','Next Steps');
+  bodyTxt(state.nextSteps);
+
+  footer();
+  const safeName = state.studentName.replace(/\s+/g,'_')||'Student';
+  doc.save(`${safeName}_NeedsAssessment_MyScenario.pdf`);
+}
+
+renderProgress(1);
+</script>
+</body>
+</html>
